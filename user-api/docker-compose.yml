@@ -1,0 +1,33 @@
+# Docker Compose configuration for Python Flask API with PostgreSQL.
+# This file sets up two services: 'api' for the Flask application and 'db' for the PostgreSQL database.
+
+services:
+# Python Flask API service, will wait for the database to be ready before starting.
+  api:
+    build: .
+    depends_on:
+      - db
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app
+    environment:
+      - Database_URL=postgresql://user:password@db:5432/userdb
+
+# PostgreSQL database service, with a health check to ensure it's ready before the API starts.
+  db:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=userdb
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d userdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
